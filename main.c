@@ -1,34 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
-#include "net.h"
+#include "http.h"
+
+static void OnRequestHandler(RequestContext *context) {
+    printf("Connection from %s:%d\n", context->connection.address, context->connection.port);
+
+    const char buf[] = "HTTP/1.1 200 OK\r\n\r\n";
+    Write(&context->connection, buf, sizeof(buf) - 1);
+    Close(&context->connection);
+
+    // SetStatus(context, 200);
+    // AddHeader(context, "Content-Type", "application/json");
+    // SetBody(context, "{ \"status\": \"ok\" }");
+    // EndRequest(context);
+}
 
 int main(void) {
-    Listener listener;
-
     const int PORT = 4221;
-    int result = Listen(&listener, PORT);
+    Server server;
+    int result = CreateServer(&server, PORT);
     if (result != 0) {
         fprintf(stderr, "Failed to listen on port %d\n", PORT);
         exit(1);
     }
-
     printf("Listening on port %d\n", PORT);
 
-    while (true) {
-        Connection connection;
-        if (Accept(&listener, &connection) != 0) {
-            fprintf(stderr, "Failed to accept connection\n");
-            continue;
-        }
-
-        printf("Accepted connection %s:%d\n", connection.address, connection.port);
-
-        const char buf[] = "HTTP/1.1 200 OK\r\n\r\n";
-        Write(&connection, buf, sizeof(buf) - 1);
-        Close(&connection);
-    }
+    HandleRequests(&server, OnRequestHandler);
 
     return 0;
 }
