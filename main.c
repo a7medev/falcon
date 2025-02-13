@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "http.h"
+#include "server.h"
 
 static void OnRequestHandler(RequestContext *context) {
     printf("Connection from %s:%d\n", context->connection.address, context->connection.port);

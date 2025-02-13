@@ -6,5 +6,5 @@ set(CMAKE_C_STANDARD 11)
 add_executable(http main.c
         net.c
         net.h
-        http.c
-        http.h)
+        server.c
+        server.h)

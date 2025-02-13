@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include "http.h"
+#include "server.h"
 
 int CreateServer(Server *server, const int port) {
     return Listen(&server->listener, port);
