@@ -26,7 +26,14 @@ int Listen(Listener *listener, int port) {
 
     listener->socket_fd = socket_fd;
 
-    int result = bind(socket_fd, (struct sockaddr *) &address, sizeof(address));
+    // Allow reusing the address. This avoids the "Address already in use" error.
+    const int option = 1;
+    int result = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+    if (result != 0) {
+        return -1;
+    }
+
+    result = bind(socket_fd, (struct sockaddr *) &address, sizeof(address));
     if (result != 0) {
         return -1;
     }
