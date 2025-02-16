@@ -8,6 +8,7 @@
 #include <pthread.h>
 
 #include "net.h"
+#include "request.h"
 
 struct RequestContext;
 
@@ -17,6 +18,7 @@ typedef struct RequestContext {
     Connection connection;
     pthread_t thread;
     RequestHandler handler;
+    Request request;
     // TODO: Add method, URL, headers, body, query parameters, etc...
 } RequestContext;
 

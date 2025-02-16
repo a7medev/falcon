@@ -6,12 +6,27 @@
 #include <stdbool.h>
 #include "server.h"
 
+#include "parser.h"
+
 int CreateServer(Server *server, const int port) {
     return Listen(&server->listener, port);
 }
 
 static void *HandleConnection(void *arg) {
     RequestContext *context = arg;
+
+    const int MAX_REQUEST_BUFFER = 1024;
+    char *data = malloc(MAX_REQUEST_BUFFER * sizeof(char));
+    size_t n = Read(&context->connection, data, MAX_REQUEST_BUFFER);
+    if (n == 0) {
+        fprintf(stderr, "Failed to read request\n");
+        return NULL;
+    }
+
+    if (Parse(data, n, &context->request) != 0) {
+        fprintf(stderr, "Failed to parse request\n");
+        return NULL;
+    }
 
     context->handler(context);
 

@@ -7,4 +7,9 @@ add_executable(http main.c
         net.c
         net.h
         server.c
-        server.h)
+        server.h
+        parser.c
+        parser.h
+        request.h
+        string.c
+        string.h)

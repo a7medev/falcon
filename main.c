@@ -1,5 +1,7 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "server.h"
 
@@ -21,7 +23,7 @@ int main(void) {
     Server server;
     int result = CreateServer(&server, PORT);
     if (result != 0) {
-        fprintf(stderr, "Failed to listen on port %d\n", PORT);
+        fprintf(stderr, "Failed to listen on port %d. Error: %s\n", PORT, strerror(errno));
         exit(1);
     }
     printf("Listening on port %d\n", PORT);
