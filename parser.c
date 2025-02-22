@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "server.h"
+
 #pragma mark - Read utilities
 
 static int ReadUntil(const char *data, const size_t n, const char ch, int *pos, char **dest) {
@@ -62,25 +64,25 @@ static bool SkipCLRF(const char *data, const size_t n, int *pos) {
 
 #pragma mark - Parser
 
-int Parse(const char *data, const size_t n, Request *parser) {
+int Parse(const char *data, const size_t n, Request *request) {
     int i = 0;
 
     // Method
-    if (ReadUntil(data, n, ' ', &i, &parser->method) != 0) {
+    if (ReadUntil(data, n, ' ', &i, &request->method) != 0) {
         return -1;
     }
 
     DiscardAll(data, n, ' ', &i);
 
     // URL
-    if (ReadUntil(data, n, ' ', &i, &parser->url) != 0) {
+    if (ReadUntil(data, n, ' ', &i, &request->url) != 0) {
         return -1;
     }
 
     DiscardAll(data, n, ' ', &i);
 
     // Version & CR
-    if (ReadUntil(data, n, '\r', &i, &parser->version) != 0) {
+    if (ReadUntil(data, n, '\r', &i, &request->version) != 0) {
         return -1;
     }
 
@@ -117,7 +119,8 @@ int Parse(const char *data, const size_t n, Request *parser) {
             return -1;
         }
 
-        printf("Header: %s: %s\n", header, value);
+        HeaderMapSet(&request->headers, header, value);
+
         free(header);
         free(value);
     }

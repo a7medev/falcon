@@ -10,6 +10,9 @@ add_executable(http main.c
         server.h
         parser.c
         parser.h
-        request.h
+        messages.h
         string.c
-        string.h)
+        string.h
+        headers.c
+        headers.h
+        messages.c)

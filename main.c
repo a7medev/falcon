@@ -1,7 +1,7 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "server.h"
 
@@ -12,10 +12,18 @@ static void OnRequestHandler(RequestContext *context) {
     Write(&context->connection, buf, sizeof(buf) - 1);
     Close(&context->connection);
 
-    // SetStatus(context, 200);
+    const int headersCount = HeaderMapCount(&context->request.headers);
+    for (int i = 0; i < headersCount; i++) {
+        const Header header = HeaderMapGetAt(&context->request.headers, i);
+        printf("H: %s: %s\n", header.header, header.value);
+    }
+
+    // SetStatus(context, HTTP_OK);
     // AddHeader(context, "Content-Type", "application/json");
     // SetBody(context, "{ \"status\": \"ok\" }");
     // EndRequest(context);
+
+    RequestContextFree(context);
 }
 
 int main(void) {
