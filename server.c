@@ -15,15 +15,18 @@ int CreateServer(Server *server, const int port) {
 static void *HandleConnection(void *extContext) {
     RequestContext *context = extContext;
 
-    const int MAX_REQUEST_BUFFER = 1024;
-    char *data = malloc(MAX_REQUEST_BUFFER * sizeof(char));
-    size_t n = Read(&context->connection, data, MAX_REQUEST_BUFFER);
-    if (n == 0) {
-        fprintf(stderr, "Failed to read request\n");
-        return NULL;
-    }
+    // const int MAX_REQUEST_BUFFER = 1024;
+    // char *data = malloc(MAX_REQUEST_BUFFER * sizeof(char));
+    // size_t n = Read(&context->connection, data, MAX_REQUEST_BUFFER);
+    // if (n == 0) {
+    //     fprintf(stderr, "Failed to read request\n");
+    //     return NULL;
+    // }
 
-    if (Parse(data, n, &context->request) != 0) {
+    Reader reader;
+    ReaderCreate(&reader, context->connection.conn_fd);
+
+    if (Parse(&reader, &context->request) != 0) {
         fprintf(stderr, "Failed to parse request\n");
         return NULL;
     }

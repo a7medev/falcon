@@ -5,9 +5,9 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <string.h>
 #include "messages.h"
+#include "bufio.h"
 
-int Parse(const char *data, size_t n, Request *request);
+int Parse(Reader *reader, Request *request);
 
 #endif //PARSER_H

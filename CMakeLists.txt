@@ -15,4 +15,6 @@ add_executable(http main.c
         string.h
         headers.c
         headers.h
-        messages.c)
+        messages.c
+        bufio.c
+        bufio.h)

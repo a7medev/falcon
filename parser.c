@@ -9,124 +9,98 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bufio.h"
 #include "server.h"
 
 #pragma mark - Read utilities
 
-static int ReadUntil(const char *data, const size_t n, const char ch, int *pos, char **dest) {
-    const int start = *pos;
-    int i = start, size = 1;
-
-    while (i < n && data[i++] != ch) {
-        size++;
+static void DiscardAll(Reader *reader, const char ch) {
+    while (ReaderPeekByte(reader) == ch) {
+        ReaderReadByte(reader);
     }
-
-    if (i == n) {
-        return -1;
-    }
-
-    char *content = malloc(size * sizeof(char));
-
-    if (content == NULL) {
-        return -1;
-    }
-
-    strlcpy(content, data + start, size);
-
-    *dest = content;
-    *pos = i;
-
-    return 0;
 }
 
-static void DiscardAll(const char *data, const size_t n, const char ch, int *pos) {
-    int i = *pos;
-    while (i < n && data[i] == ch) {
-        i++;
-    }
-
-    *pos = i;
-}
-
-static bool SkipCLRF(const char *data, const size_t n, int *pos) {
-    const int i = *pos;
-    if (i + 1 >= n) {
+// TODO: Refactor?? Is it too much??
+static bool SkipCLRF(Reader *reader) {
+    if (ReaderPeekByte(reader) != '\r') {
         return false;
     }
 
-    if (data[i] == '\r' && data[i + 1] == '\n') {
-        *pos = i + 2;
-        return true;
+    ReaderReadByte(reader);
+    if (ReaderPeekByte(reader) != '\n') {
+        ReaderBackByte(reader);
+        return false;
     }
 
-    return false;
+    ReaderReadByte(reader);
+
+    return true;
 }
 
 #pragma mark - Parser
 
-int Parse(const char *data, const size_t n, Request *request) {
-    int i = 0;
+int Parse(Reader *reader, Request *request) {
+    request->method = malloc(100 * sizeof(char));
+    request->url = malloc(100 * sizeof(char));
+    request->version = malloc(100 * sizeof(char));
+    // request->method = malloc(100 * sizeof(char));
 
     // Method
-    if (ReadUntil(data, n, ' ', &i, &request->method) != 0) {
+    if (ReaderReadUntil(reader, ' ', request->method) != 0) {
         return -1;
     }
 
-    DiscardAll(data, n, ' ', &i);
+    DiscardAll(reader, ' ');
 
     // URL
-    if (ReadUntil(data, n, ' ', &i, &request->url) != 0) {
+    if (ReaderReadUntil(reader, ' ', request->url) != 0) {
         return -1;
     }
 
-    DiscardAll(data, n, ' ', &i);
+    DiscardAll(reader, ' ');
 
     // Version & CR
-    if (ReadUntil(data, n, '\r', &i, &request->version) != 0) {
-        return -1;
-    }
-
-    if (i == n) {
+    if (ReaderReadUntil(reader, '\r', request->version) != 0) {
         return -1;
     }
 
     // LF
-    if (data[i++] != '\n') {
+    if (ReaderReadByte(reader) != '\n') {
         return -1;
     }
 
     // Headers
-    while (!SkipCLRF(data, n, &i)) {
-        char *header;
-        char *value;
+    while (!SkipCLRF(reader)) {
+        // FIXME: Make ReaderReadUntil create the string with a suitable length to avoid truncation.
+        char header[100];
+        char value[100];
 
-        if (ReadUntil(data, n, ':', &i, &header) != 0) {
+        if (ReaderReadUntil(reader, ':', header) != 0) {
             return -1;
         }
 
-        DiscardAll(data, n, ' ', &i);
+        DiscardAll(reader, ' ');
 
-        if (ReadUntil(data, n, '\r', &i, &value) != 0) {
-            return -1;
-        }
-
-        if (i == n) {
+        if (ReaderReadUntil(reader, '\r', value) != 0) {
             return -1;
         }
 
         // LF
-        if (data[i++] != '\n') {
+        if (ReaderReadByte(reader) != '\n') {
             return -1;
         }
 
         HeaderMapSet(&request->headers, header, value);
 
-        free(header);
-        free(value);
+        // free(header);
+        // free(value);
     }
 
-    // Whichever remains is the body...
-    printf("Body: %s", data + i);
+    // TODO: Handle body
+    // TODO: with Content-Length
+    // TODO: with Transfer-Encoding: chunked
+    // TODO: without, read all remaining
+    // printf("Body: %s", data + i);
 
     return 0;
 }
