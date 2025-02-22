@@ -6,6 +6,8 @@
 
 #include <unistd.h>
 
+#include "string.h"
+
 void ReaderCreate(Reader *reader, const int fd) {
     reader->fd = fd;
     reader->size = 0;
@@ -60,29 +62,24 @@ int ReaderBackByte(Reader *reader) {
     return 0;
 }
 
-int ReaderReadUntil(Reader *reader, const char delim, char *dest) {
-    // TODO: Allocate a string with a suitable length and return it instead.
-    int i = 0;
+int ReaderReadUntil(Reader *reader, const char delim, char **dest) {
+    StringBuffer buffer;
+    StringBufferCreate(&buffer);
 
     char ch;
     while ((ch = ReaderReadByte(reader)) > 0 && ch != delim) {
-        dest[i++] = ch;
+        StringBufferAppend(&buffer, ch);
     }
-    dest[i] = '\0';
+
+    *dest = StringBufferToString(&buffer);
 
     if (ch < 0) {
         return -1;
     }
 
     return 0;
+}
 
-    // char *content = malloc(size * sizeof(char));
-    //
-    // if (content == NULL) {
-    //     return -1;
-    // }
-    //
-    // strlcpy(content, data + start, size);
-    //
-    // *dest = content;
+ssize_t ReaderRead(const Reader *reader, char *buf, const int n) {
+    return read(reader->fd, buf, n);
 }

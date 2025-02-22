@@ -5,6 +5,18 @@
 #ifndef STRING_H
 #define STRING_H
 
+typedef struct StringBuffer {
+    char *string;
+    int size;
+    int capacity;
+} StringBuffer;
+
+void StringBufferCreate(StringBuffer *buffer);
+void StringBufferFree(StringBuffer *buffer);
+int StringBufferAppend(StringBuffer *buffer, char ch);
+int StringBufferAppendString(StringBuffer *buffer, const char *s, int n);
+char *StringBufferToString(StringBuffer *buffer);
+
 /// Turns all characters in the source string into lowercase characters.
 /// @warning The string returned is heap allocated and must be freed after it's no longer used.
 char *StringLower(const char *source);

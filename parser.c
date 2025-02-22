@@ -40,27 +40,23 @@ static bool SkipCLRF(Reader *reader) {
 #pragma mark - Parser
 
 int Parse(Reader *reader, Request *request) {
-    request->method = malloc(100 * sizeof(char));
-    request->url = malloc(100 * sizeof(char));
-    request->version = malloc(100 * sizeof(char));
-    // request->method = malloc(100 * sizeof(char));
-
     // Method
-    if (ReaderReadUntil(reader, ' ', request->method) != 0) {
+    // TODO: Validate method and turn it into an enum.
+    if (ReaderReadUntil(reader, ' ', &request->method) != 0) {
         return -1;
     }
 
     DiscardAll(reader, ' ');
 
     // URL
-    if (ReaderReadUntil(reader, ' ', request->url) != 0) {
+    if (ReaderReadUntil(reader, ' ', &request->url) != 0) {
         return -1;
     }
 
     DiscardAll(reader, ' ');
 
     // Version & CR
-    if (ReaderReadUntil(reader, '\r', request->version) != 0) {
+    if (ReaderReadUntil(reader, '\r', &request->version) != 0) {
         return -1;
     }
 
@@ -71,17 +67,16 @@ int Parse(Reader *reader, Request *request) {
 
     // Headers
     while (!SkipCLRF(reader)) {
-        // FIXME: Make ReaderReadUntil create the string with a suitable length to avoid truncation.
-        char header[100];
-        char value[100];
+        char *header;
+        char *value;
 
-        if (ReaderReadUntil(reader, ':', header) != 0) {
+        if (ReaderReadUntil(reader, ':', &header) != 0) {
             return -1;
         }
 
         DiscardAll(reader, ' ');
 
-        if (ReaderReadUntil(reader, '\r', value) != 0) {
+        if (ReaderReadUntil(reader, '\r', &value) != 0) {
             return -1;
         }
 
@@ -92,8 +87,8 @@ int Parse(Reader *reader, Request *request) {
 
         HeaderMapSet(&request->headers, header, value);
 
-        // free(header);
-        // free(value);
+        free(header);
+        free(value);
     }
 
     // TODO: Handle body
