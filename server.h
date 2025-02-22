@@ -36,7 +36,7 @@ void RequestContextFree(RequestContext *context);
 #pragma mark - Response
 void AddHeader(RequestContext *context, char *header, char *value);
 void SetBody(RequestContext *context, char *body);
-void SetStatus(RequestContext *context, int status);
+void SetStatus(RequestContext *context, HttpStatusCode status);
 int EndRequest(RequestContext *context);
 
 #endif //HTTP_H
