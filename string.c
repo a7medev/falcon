@@ -83,11 +83,13 @@ char *StringBufferToString(StringBuffer *buffer) {
 
 char *StringLower(const char *source) {
     const size_t length = strlen(source);
-    char *result = malloc(length * sizeof(char));
+    char *result = malloc((length + 1) * sizeof(char));
 
     for (int i = 0; i < length; i++) {
         result[i] = (char)tolower(source[i]);
     }
+
+    result[length] = '\0';
 
     return result;
 }

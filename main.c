@@ -8,20 +8,16 @@
 static void OnRequestHandler(RequestContext *context) {
     printf("Connection from %s:%d\n", context->connection.address, context->connection.port);
 
-    const char buf[] = "HTTP/1.1 200 OK\r\n\r\n";
-    Write(&context->connection, buf, sizeof(buf) - 1);
-    Close(&context->connection);
-
     const int headersCount = HeaderMapCount(&context->request.headers);
     for (int i = 0; i < headersCount; i++) {
         const Header header = HeaderMapGetAt(&context->request.headers, i);
         printf("H: %s: %s\n", header.header, header.value);
     }
 
-    // SetStatus(context, HTTP_OK);
-    // AddHeader(context, "Content-Type", "application/json");
-    // SetBody(context, "{ \"status\": \"ok\" }");
-    // EndRequest(context);
+    SetStatus(context, HTTP_OK);
+    AddHeader(context, "Content-Type", "application/json");
+    SetBody(context, "{ \"status\": \"ok\" }");
+    EndRequest(context);
 
     RequestContextFree(context);
 }

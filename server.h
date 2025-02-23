@@ -7,6 +7,7 @@
 
 #include <pthread.h>
 
+#include "bufio.h"
 #include "net.h"
 #include "messages.h"
 
@@ -19,6 +20,8 @@ typedef struct RequestContext {
     pthread_t thread;
     RequestHandler handler;
     Request request;
+    Response response;
+    Reader reader;
 } RequestContext;
 
 typedef struct Server {
@@ -34,9 +37,9 @@ void HandleRequests(const Server *server, RequestHandler handler);
 void RequestContextFree(RequestContext *context);
 
 #pragma mark - Response
-void AddHeader(RequestContext *context, char *header, char *value);
-void SetBody(RequestContext *context, char *body);
+void AddHeader(RequestContext *context, const char *header, const char *value);
+void SetBody(RequestContext *context, const char *body);
 void SetStatus(RequestContext *context, HttpStatusCode status);
-int EndRequest(RequestContext *context);
+int EndRequest(const RequestContext *context);
 
 #endif //HTTP_H

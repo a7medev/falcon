@@ -15,18 +15,7 @@ int CreateServer(Server *server, const int port) {
 static void *HandleConnection(void *extContext) {
     RequestContext *context = extContext;
 
-    // const int MAX_REQUEST_BUFFER = 1024;
-    // char *data = malloc(MAX_REQUEST_BUFFER * sizeof(char));
-    // size_t n = Read(&context->connection, data, MAX_REQUEST_BUFFER);
-    // if (n == 0) {
-    //     fprintf(stderr, "Failed to read request\n");
-    //     return NULL;
-    // }
-
-    Reader reader;
-    ReaderCreate(&reader, context->connection.conn_fd);
-
-    if (Parse(&reader, &context->request) != 0) {
+    if (Parse(&context->reader, &context->request) != 0) {
         fprintf(stderr, "Failed to parse request\n");
         return NULL;
     }
@@ -40,12 +29,15 @@ static RequestContext *RequestContextAllocate() {
     RequestContext *context = malloc(sizeof(RequestContext));
 
     RequestCreate(&context->request);
+    ResponseCreate(&context->response);
 
     return context;
 }
 
 void RequestContextFree(RequestContext *context) {
     RequestFree(&context->request);
+    ResponseFree(&context->response);
+    Close(&context->connection);
     free(context);
 }
 
@@ -57,6 +49,8 @@ void HandleRequests(const Server *server, const RequestHandler handler) {
             fprintf(stderr, "Failed to accept connection\n");
             continue;
         }
+
+        ReaderCreate(&context->reader, context->connection.conn_fd);
 
         context->handler = handler;
         pthread_create(&context->thread, NULL, HandleConnection, context);
@@ -195,15 +189,49 @@ static const char* StatusToReasonPhrase(const HttpStatusCode status) {
 }
 
 void SetStatus(RequestContext *context, HttpStatusCode status) {
-    // TODO: Not implemented
+    context->response.status = status;
 }
-void AddHeader(RequestContext *context, char *header, char *value) {
-    // TODO: Not implemented
+
+void AddHeader(RequestContext *context, const char *header, const char *value) {
+    HeaderMapSet(&context->response.headers, header, value);
 }
-void SetBody(RequestContext *context, char *body) {
-    // TODO: Not implemented
+
+void SetBody(RequestContext *context, const char *body) {
+    free(context->response.body);
+    context->response.body = strdup(body);
+    char length[10];
+    snprintf(length, sizeof(length), "%lu", strlen(body));
+    AddHeader(context, "Content-Length", length);
 }
-int EndRequest(RequestContext *context) {
-    // TODO: Not implemented
+
+int EndRequest(const RequestContext *context) {
+    const Response *response = &context->response;
+
+    const int MAX_STATUS_LINE = 100;
+    char statusLine[MAX_STATUS_LINE];
+
+    int n = snprintf(statusLine, MAX_STATUS_LINE, "HTTP/1.1 %d %s\r\n", response->status, StatusToReasonPhrase(response->status));
+
+    Write(&context->connection, statusLine, n);
+
+    const int headersCount = HeaderMapCount(&context->response.headers);
+    for (int i = 0; i < headersCount; i++) {
+        const Header header = HeaderMapGetAt(&context->response.headers, i);
+
+        // TODO: Simplify this... Maybe add write with format to bufio or a similar place
+        const size_t size = strlen(header.header) + strlen(header.value) + 5;
+        char *temp = malloc(size * sizeof(char));
+
+        n = snprintf(temp, size, "%s: %s\r\n", header.header, header.value);
+
+        Write(&context->connection, temp, n);
+
+        free(temp);
+    }
+
+    Write(&context->connection, "\r\n", 2);
+
+    Write(&context->connection, response->body, strlen(response->body));
+
     return -1;
 }

@@ -18,3 +18,5 @@ add_executable(http main.c
         messages.c
         bufio.c
         bufio.h)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
