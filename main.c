@@ -8,16 +8,22 @@
 static void OnRequestHandler(RequestContext *context) {
     printf("Connection from %s:%d\n", context->connection.address, context->connection.port);
 
-    const int headersCount = HeaderMapCount(&context->request.headers);
-    for (int i = 0; i < headersCount; i++) {
-        const Header header = HeaderMapGetAt(&context->request.headers, i);
-        printf("H: %s: %s\n", header.header, header.value);
-    }
+    if (strcmp(context->request.url, "/user-agent") == 0) {
+        if (strcmp(context->request.method, "GET") != 0) {
+            ResponseSetStatus(&context->response, HTTP_METHOD_NOT_ALLOWED);
+            RequestContextEnd(context);
+            RequestContextFree(context);
+            return;
+        }
 
-    SetStatus(context, HTTP_OK);
-    AddHeader(context, "Content-Type", "application/json");
-    SetBody(context, "{ \"status\": \"ok\" }");
-    EndRequest(context);
+        ResponseSetStatus(&context->response, HTTP_OK);
+        ResponseSetHeader(&context->response, "Content-Type", "application/json");
+        ResponseSetBody(&context->response, HeaderMapGet(&context->request.headers, "User-Agent"));
+        RequestContextEnd(context);
+    } else {
+        ResponseSetStatus(&context->response, HTTP_NOT_FOUND);
+        RequestContextEnd(context);
+    }
 
     RequestContextFree(context);
 }

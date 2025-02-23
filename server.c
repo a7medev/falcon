@@ -22,6 +22,9 @@ static void *HandleConnection(void *extContext) {
 
     context->handler(context);
 
+    // TODO: Handle Connection header (keep-alive and close).
+    // TODO: Handle compression
+
     return NULL;
 }
 
@@ -188,26 +191,7 @@ static const char* StatusToReasonPhrase(const HttpStatusCode status) {
     }
 }
 
-void SetStatus(RequestContext *context, HttpStatusCode status) {
-    context->response.status = status;
-}
-
-void AddHeader(RequestContext *context, const char *header, const char *value) {
-    HeaderMapSet(&context->response.headers, header, value);
-}
-
-void SetBody(RequestContext *context, const char *body) {
-    free(context->response.body);
-
-    context->response.body = strdup(body);
-
-    char length[10];
-    snprintf(length, sizeof(length), "%lu", strlen(body));
-
-    AddHeader(context, "Content-Length", length);
-}
-
-int EndRequest(const RequestContext *context) {
+int RequestContextEnd(const RequestContext *context) {
     const Response *response = &context->response;
 
     ssize_t result = WriteFormat(&context->connection, "HTTP/1.1 %d %s\r\n", response->status, StatusToReasonPhrase(response->status));
@@ -228,6 +212,10 @@ int EndRequest(const RequestContext *context) {
     result = Write(&context->connection, "\r\n", 2);
     if (result < 0) {
         return -1;
+    }
+
+    if (response->body == NULL) {
+        return 0;
     }
 
     result = Write(&context->connection, response->body, strlen(response->body));

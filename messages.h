@@ -91,5 +91,8 @@ void RequestFree(Request *request);
 
 void ResponseCreate(Response *response);
 void ResponseFree(Response *response);
+void ResponseSetStatus(Response *response, HttpStatusCode status);
+void ResponseSetHeader(Response *response, const char *header, const char *value);
+void ResponseSetBody(Response *response, const char *body);
 
 #endif //REQUEST_H
