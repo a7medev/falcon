@@ -23,10 +23,7 @@ void HeaderMapFree(HeaderMap *map) {
 }
 
 char *HeaderMapGet(const HeaderMap *map, const char *header) {
-    char *trimmed = StringTrim(header);
-    char *canonical = StringLower(trimmed);
-
-    free(trimmed);
+    char *canonical = StringLower(StringTrim(header));
 
     for (int i = 0; i < map->count; i++) {
         const Header current = map->headers[i];
@@ -41,10 +38,7 @@ char *HeaderMapGet(const HeaderMap *map, const char *header) {
 }
 
 int HeaderMapSet(HeaderMap *map, const char *header, const char *value) {
-    char *trimmed = StringTrim(header);
-    char *canonical = StringLower(trimmed);
-
-    free(trimmed);
+    char *canonical = StringLower(StringTrim(header));
 
     for (int i = 0; i < map->count; i++) {
         Header *current = &map->headers[i];

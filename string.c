@@ -81,17 +81,14 @@ char *StringBufferToString(StringBuffer *buffer) {
     return result;
 }
 
-char *StringLower(const char *source) {
+char *StringLower(char *source) {
     const size_t length = strlen(source);
-    char *result = malloc((length + 1) * sizeof(char));
 
     for (int i = 0; i < length; i++) {
-        result[i] = (char)tolower(source[i]);
+        source[i] = (char)tolower(source[i]);
     }
 
-    result[length] = '\0';
-
-    return result;
+    return source;
 }
 
 char *StringTrim(const char *source) {
