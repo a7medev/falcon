@@ -80,6 +80,16 @@ int ReaderReadUntil(Reader *reader, const char delim, char **dest) {
     return 0;
 }
 
-ssize_t ReaderRead(const Reader *reader, char *buf, const int n) {
-    return read(reader->fd, buf, n);
+int ReaderRead(Reader *reader, char *buf, const size_t n) {
+    int i = 0;
+    char ch = 0;
+    while (i < n && (ch = ReaderReadByte(reader)) > 0) {
+        buf[i++] = ch;
+    }
+
+    if (ch < 0) {
+        return -1;
+    }
+
+    return i;
 }

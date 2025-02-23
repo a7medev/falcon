@@ -92,10 +92,17 @@ int Parse(Reader *reader, Request *request) {
     }
 
     // TODO: Handle body
-    // TODO: with Content-Length
     // TODO: with Transfer-Encoding: chunked
     // TODO: without, read all remaining
-    // printf("Body: %s", data + i);
+
+    const char *contentLengthValue = HeaderMapGet(&request->headers, "Content-Length");
+    if (contentLengthValue != NULL) {
+        const long contentLength = strtol(contentLengthValue, NULL, 10);
+        request->body = malloc((contentLength + 1) * sizeof(char));
+        if (ReaderRead(reader, request->body, contentLength) < 0) {
+            return -1;
+        }
+    }
 
     return 0;
 }

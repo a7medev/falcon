@@ -41,6 +41,6 @@ int ReaderBackByte(Reader *reader);
 
 int ReaderReadUntil(Reader *reader, char delim, char **dest);
 
-ssize_t ReaderRead(const Reader *reader, char *buf, int n);
+int ReaderRead(Reader *reader, char *buf, size_t n);
 
 #endif //BUFIO_H
