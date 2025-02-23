@@ -17,11 +17,12 @@ typedef struct Connection {
     char* address;
 } Connection;
 
-int Listen(Listener *listener,int port);
+int Listen(Listener *listener, int port);
 int Accept(const Listener *listener, Connection *connection);
 int Close(const Connection *connection);
 
-size_t Read(const Connection *connection, void *buffer, size_t size);
-size_t Write(const Connection *connection, const void *buffer, size_t size);
+ssize_t Read(const Connection *connection, void *buffer, size_t size);
+ssize_t Write(const Connection *connection, const void *buffer, size_t size);
+int WriteFormat(const Connection *connection, const char *format, ...);
 
 #endif //NET_H

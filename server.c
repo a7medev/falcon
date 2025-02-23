@@ -198,40 +198,42 @@ void AddHeader(RequestContext *context, const char *header, const char *value) {
 
 void SetBody(RequestContext *context, const char *body) {
     free(context->response.body);
+
     context->response.body = strdup(body);
+
     char length[10];
     snprintf(length, sizeof(length), "%lu", strlen(body));
+
     AddHeader(context, "Content-Length", length);
 }
 
 int EndRequest(const RequestContext *context) {
     const Response *response = &context->response;
 
-    const int MAX_STATUS_LINE = 100;
-    char statusLine[MAX_STATUS_LINE];
-
-    int n = snprintf(statusLine, MAX_STATUS_LINE, "HTTP/1.1 %d %s\r\n", response->status, StatusToReasonPhrase(response->status));
-
-    Write(&context->connection, statusLine, n);
+    ssize_t result = WriteFormat(&context->connection, "HTTP/1.1 %d %s\r\n", response->status, StatusToReasonPhrase(response->status));
+    if (result < 0) {
+        return -1;
+    }
 
     const int headersCount = HeaderMapCount(&context->response.headers);
     for (int i = 0; i < headersCount; i++) {
         const Header header = HeaderMapGetAt(&context->response.headers, i);
 
-        // TODO: Simplify this... Maybe add write with format to bufio or a similar place
-        const size_t size = strlen(header.header) + strlen(header.value) + 5;
-        char *temp = malloc(size * sizeof(char));
-
-        n = snprintf(temp, size, "%s: %s\r\n", header.header, header.value);
-
-        Write(&context->connection, temp, n);
-
-        free(temp);
+        result = WriteFormat(&context->connection, "%s: %s\r\n", header.header, header.value);
+        if (result < 0) {
+            return -1;
+        }
     }
 
-    Write(&context->connection, "\r\n", 2);
+    result = Write(&context->connection, "\r\n", 2);
+    if (result < 0) {
+        return -1;
+    }
 
-    Write(&context->connection, response->body, strlen(response->body));
+    result = Write(&context->connection, response->body, strlen(response->body));
+    if (result < 0) {
+        return -1;
+    }
 
-    return -1;
+    return 0;
 }

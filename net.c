@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "net.h"
 
@@ -73,10 +74,19 @@ int Close(const Connection *connection) {
     return 0;
 }
 
-size_t Read(const Connection *connection, void *buffer, size_t size) {
+ssize_t Read(const Connection *connection, void *buffer, size_t size) {
     return read(connection->conn_fd, buffer, size);
 }
 
-size_t Write(const Connection *connection, const void *buffer, const size_t size) {
+ssize_t Write(const Connection *connection, const void *buffer, const size_t size) {
     return write(connection->conn_fd, buffer, size);
 }
+
+int WriteFormat(const Connection *connection, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    const int n = vdprintf(connection->conn_fd, format, args);
+    va_end(args);
+    return n;
+}
+

@@ -82,6 +82,10 @@ char *StringBufferToString(StringBuffer *buffer) {
 }
 
 char *StringLower(char *source) {
+    if (source == NULL) {
+        return NULL;
+    }
+
     const size_t length = strlen(source);
 
     for (int i = 0; i < length; i++) {
@@ -92,6 +96,10 @@ char *StringLower(char *source) {
 }
 
 char *StringTrim(const char *source) {
+    if (source == NULL) {
+        return NULL;
+    }
+
     const size_t length = strlen(source);
     size_t start = 0, end = length - 1;
 

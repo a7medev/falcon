@@ -114,9 +114,9 @@ int Parse(Reader *reader, Request *request) {
     // TODO: without, read all remaining
 
     // TODO: Move into separate method
-    char *transferEncoding =  StringLower(StringTrim(HeaderMapGet(&request->headers, "Transfer-Encoding")));
+    char *transferEncoding = StringLower(StringTrim(HeaderMapGet(&request->headers, "Transfer-Encoding")));
 
-    if (strcmp(transferEncoding, "chunked") == 0) {
+    if (transferEncoding != NULL && strcmp(transferEncoding, "chunked") == 0) {
         long chunkLength = 0;
 
         StringBuffer buffer;
