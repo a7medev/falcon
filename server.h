@@ -11,30 +11,30 @@
 #include "net.h"
 #include "messages.h"
 
-struct RequestContext;
+struct FLNRequestContext;
 
-typedef void (*RequestHandler)(struct RequestContext *context);
+typedef void (*FLNRequestHandler)(struct FLNRequestContext *context);
 
-typedef struct RequestContext {
-    Connection connection;
+typedef struct FLNRequestContext {
+    FLNConnection connection;
     pthread_t thread;
-    RequestHandler handler;
-    Request request;
-    Response response;
-    Reader reader;
-} RequestContext;
+    FLNRequestHandler handler;
+    FLNRequest request;
+    FLNResponse response;
+    FLNReader reader;
+} FLNRequestContext;
 
-typedef struct Server {
-    Listener listener;
-    RequestHandler handler;
-} Server;
+typedef struct server {
+    FLNListener listener;
+    FLNRequestHandler handler;
+} FLNServer;
 
 #pragma mark - Setup
-int CreateServer(Server *server, int port);
-void HandleRequests(const Server *server, RequestHandler handler);
+int FLNServerCreate(FLNServer *server, int port);
+void FLNServerHandleRequests(const FLNServer *server, FLNRequestHandler handler);
 
 #pragma mark - Request Context
-void RequestContextFree(RequestContext *context);
-int RequestContextEnd(const RequestContext *context);
+void FLNRequestContextFree(FLNRequestContext *context);
+int FLNRequestContextEnd(const FLNRequestContext *context);
 
 #endif //HTTP_H

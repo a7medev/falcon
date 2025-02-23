@@ -5,23 +5,23 @@
 #ifndef STRING_H
 #define STRING_H
 
-typedef struct StringBuffer {
+typedef struct FLNStringBuffer {
     char *string;
     int size;
     int capacity;
-} StringBuffer;
+} FLNStringBuffer;
 
-void StringBufferCreate(StringBuffer *buffer);
-void StringBufferFree(StringBuffer *buffer);
-int StringBufferAppend(StringBuffer *buffer, char ch);
-int StringBufferAppendString(StringBuffer *buffer, const char *s, int n);
-char *StringBufferToString(StringBuffer *buffer);
+void FLNStringBufferCreate(FLNStringBuffer *buffer);
+void FLNStringBufferFree(FLNStringBuffer *buffer);
+int FLNStringBufferAppend(FLNStringBuffer *buffer, char ch);
+int FLNStringBufferAppendString(FLNStringBuffer *buffer, const char *s, int n);
+char *FLNStringBufferToString(FLNStringBuffer *buffer);
 
 /// Turns all characters in the source string into lowercase characters.
-char *StringLower(char *source);
+char *FLNStringLower(char *source);
 
 /// Trims space at the beginning and end of the source string.
 /// @warning The string returned is heap allocated and must be freed after it's no longer used.
-char *StringTrim(const char *source);
+char *FLNStringTrim(const char *source);
 
 #endif //STRING_H

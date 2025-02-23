@@ -5,40 +5,40 @@
 
 #include "server.h"
 
-static void OnRequestHandler(RequestContext *context) {
+static void OnRequestHandler(FLNRequestContext *context) {
     printf("Connection from %s:%d\n", context->connection.address, context->connection.port);
 
     if (strcmp(context->request.url, "/user-agent") == 0) {
         if (strcmp(context->request.method, "GET") != 0) {
-            ResponseSetStatus(&context->response, HTTP_METHOD_NOT_ALLOWED);
-            RequestContextEnd(context);
-            RequestContextFree(context);
+            FLNResponseSetStatus(&context->response, FLN_HTTP_METHOD_NOT_ALLOWED);
+            FLNRequestContextEnd(context);
+            FLNRequestContextFree(context);
             return;
         }
 
-        ResponseSetStatus(&context->response, HTTP_OK);
-        ResponseSetHeader(&context->response, "Content-Type", "application/json");
-        ResponseSetBody(&context->response, HeaderMapGet(&context->request.headers, "User-Agent"));
-        RequestContextEnd(context);
+        FLNResponseSetStatus(&context->response, FLN_HTTP_OK);
+        FLNResponseSetHeader(&context->response, "Content-Type", "application/json");
+        FLNResponseSetBody(&context->response, FLNHeaderMapGet(&context->request.headers, "User-Agent"));
+        FLNRequestContextEnd(context);
     } else {
-        ResponseSetStatus(&context->response, HTTP_NOT_FOUND);
-        RequestContextEnd(context);
+        FLNResponseSetStatus(&context->response, FLN_HTTP_NOT_FOUND);
+        FLNRequestContextEnd(context);
     }
 
-    RequestContextFree(context);
+    FLNRequestContextFree(context);
 }
 
 int main(void) {
     const int PORT = 4221;
-    Server server;
-    int result = CreateServer(&server, PORT);
+    FLNServer server;
+    int result = FLNServerCreate(&server, PORT);
     if (result != 0) {
         fprintf(stderr, "Failed to listen on port %d. Error: %s\n", PORT, strerror(errno));
         exit(1);
     }
     printf("Listening on port %d\n", PORT);
 
-    HandleRequests(&server, OnRequestHandler);
+    FLNServerHandleRequests(&server, OnRequestHandler);
 
     return 0;
 }

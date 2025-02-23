@@ -8,6 +8,6 @@
 #include "messages.h"
 #include "bufio.h"
 
-int Parse(Reader *reader, Request *request);
+int FLNParseRequest(FLNReader *reader, FLNRequest *request);
 
 #endif //PARSER_H

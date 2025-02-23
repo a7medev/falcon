@@ -5,29 +5,24 @@
 #ifndef HEADERS_H
 #define HEADERS_H
 
-#include <stdlib.h>
-#include <string.h>
-
-#include "string.h"
-
-typedef struct Header {
+typedef struct FLNHeader {
     char *header;
     char *value;
-} Header;
+} FLNHeader;
 
-typedef struct HeaderMap {
-    Header *headers;
+typedef struct FLNHeaderMap {
+    FLNHeader *headers;
     int count;
     int capacity;
-} HeaderMap;
+} FLNHeaderMap;
 
-void HeaderMapCreate(HeaderMap *map);
-void HeaderMapFree(HeaderMap *map);
+void FLNHeaderMapCreate(FLNHeaderMap *map);
+void FLNHeaderMapFree(FLNHeaderMap *map);
 
-char *HeaderMapGet(const HeaderMap *map, const char *header);
-int HeaderMapSet(HeaderMap *map, const char *header, const char *value);
+char *FLNHeaderMapGet(const FLNHeaderMap *map, const char *header);
+int FLNHeaderMapSet(FLNHeaderMap *map, const char *header, const char *value);
 
-int HeaderMapCount(const HeaderMap *map);
-Header HeaderMapGetAt(const HeaderMap *map, int index);
+int FLNHeaderMapCount(const FLNHeaderMap *map);
+FLNHeader FLNHeaderMapGetAt(const FLNHeaderMap *map, int index);
 
 #endif //HEADERS_H

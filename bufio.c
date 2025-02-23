@@ -8,14 +8,14 @@
 
 #include "string.h"
 
-void ReaderCreate(Reader *reader, const int fd) {
+void FLNReaderCreate(FLNReader *reader, const int fd) {
     reader->fd = fd;
     reader->size = 0;
     reader->pos = 0;
     reader->finished = false;
 }
 
-char ReaderPeekByte(Reader *reader) {
+char FLNReaderPeekByte(FLNReader *reader) {
     if (reader->finished) {
         return -1;
     }
@@ -31,7 +31,7 @@ char ReaderPeekByte(Reader *reader) {
     if (reader->size > 0) {
         reader->buffer[0] = reader->buffer[reader->size - 1];
     }
-    const ssize_t n = read(reader->fd, reader->buffer + 1, FLCN_READER_BUFFER_SIZE - 1);
+    const ssize_t n = read(reader->fd, reader->buffer + 1, FLN_READER_BUFFER_SIZE - 1);
     if (n <= 0) {
         reader->finished = true;
         return -1;
@@ -43,8 +43,8 @@ char ReaderPeekByte(Reader *reader) {
     return reader->buffer[reader->pos];
 }
 
-char ReaderReadByte(Reader *reader) {
-    const char result = ReaderPeekByte(reader);
+char FLNReaderReadByte(FLNReader *reader) {
+    const char result = FLNReaderPeekByte(reader);
 
     if (result >= 0) {
         reader->pos++;
@@ -53,7 +53,7 @@ char ReaderReadByte(Reader *reader) {
     return result;
 }
 
-int ReaderBackByte(Reader *reader) {
+int FLNReaderBackByte(FLNReader *reader) {
     if (reader->pos < 1) {
         return -1;
     }
@@ -62,16 +62,16 @@ int ReaderBackByte(Reader *reader) {
     return 0;
 }
 
-int ReaderReadUntil(Reader *reader, const char delim, char **dest) {
-    StringBuffer buffer;
-    StringBufferCreate(&buffer);
+int FLNReaderReadUntil(FLNReader *reader, const char delim, char **dest) {
+    FLNStringBuffer buffer;
+    FLNStringBufferCreate(&buffer);
 
     char ch;
-    while ((ch = ReaderReadByte(reader)) > 0 && ch != delim) {
-        StringBufferAppend(&buffer, ch);
+    while ((ch = FLNReaderReadByte(reader)) > 0 && ch != delim) {
+        FLNStringBufferAppend(&buffer, ch);
     }
 
-    *dest = StringBufferToString(&buffer);
+    *dest = FLNStringBufferToString(&buffer);
 
     if (ch < 0) {
         return -1;
@@ -80,10 +80,10 @@ int ReaderReadUntil(Reader *reader, const char delim, char **dest) {
     return 0;
 }
 
-int ReaderRead(Reader *reader, char *buf, const size_t n) {
+int FLNReaderRead(FLNReader *reader, char *buf, const size_t n) {
     int i = 0;
     char ch = 0;
-    while (i < n && (ch = ReaderReadByte(reader)) > 0) {
+    while (i < n && (ch = FLNReaderReadByte(reader)) > 0) {
         buf[i++] = ch;
     }
 

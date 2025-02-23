@@ -5,35 +5,34 @@
 #include "parser.h"
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "bufio.h"
 #include "server.h"
+#include "string.h"
 
 #pragma mark - Read utilities
 
-static void DiscardAll(Reader *reader, const char ch) {
-    while (ReaderPeekByte(reader) == ch) {
-        ReaderReadByte(reader);
+static void DiscardAll(FLNReader *reader, const char ch) {
+    while (FLNReaderPeekByte(reader) == ch) {
+        FLNReaderReadByte(reader);
     }
 }
 
 // TODO: Refactor?? Is it too much??
-static bool SkipCLRF(Reader *reader) {
-    if (ReaderPeekByte(reader) != '\r') {
+static bool SkipCLRF(FLNReader *reader) {
+    if (FLNReaderPeekByte(reader) != '\r') {
         return false;
     }
 
-    ReaderReadByte(reader);
-    if (ReaderPeekByte(reader) != '\n') {
-        ReaderBackByte(reader);
+    FLNReaderReadByte(reader);
+    if (FLNReaderPeekByte(reader) != '\n') {
+        FLNReaderBackByte(reader);
         return false;
     }
 
-    ReaderReadByte(reader);
+    FLNReaderReadByte(reader);
 
     return true;
 }
@@ -53,29 +52,29 @@ static bool SkipCLRF(Reader *reader) {
 //     }
 // }
 
-int Parse(Reader *reader, Request *request) {
+int FLNParseRequest(FLNReader *reader, FLNRequest *request) {
     // Method
     // TODO: Validate method and turn it into an enum.
-    if (ReaderReadUntil(reader, ' ', &request->method) != 0) {
+    if (FLNReaderReadUntil(reader, ' ', &request->method) != 0) {
         return -1;
     }
 
     DiscardAll(reader, ' ');
 
     // URL
-    if (ReaderReadUntil(reader, ' ', &request->url) != 0) {
+    if (FLNReaderReadUntil(reader, ' ', &request->url) != 0) {
         return -1;
     }
 
     DiscardAll(reader, ' ');
 
     // Version & CR
-    if (ReaderReadUntil(reader, '\r', &request->version) != 0) {
+    if (FLNReaderReadUntil(reader, '\r', &request->version) != 0) {
         return -1;
     }
 
     // LF
-    if (ReaderReadByte(reader) != '\n') {
+    if (FLNReaderReadByte(reader) != '\n') {
         return -1;
     }
 
@@ -84,27 +83,27 @@ int Parse(Reader *reader, Request *request) {
         char *header;
         char *value;
 
-        if (ReaderReadUntil(reader, ':', &header) != 0) {
+        if (FLNReaderReadUntil(reader, ':', &header) != 0) {
             free(header);
             return -1;
         }
 
         DiscardAll(reader, ' ');
 
-        if (ReaderReadUntil(reader, '\r', &value) != 0) {
+        if (FLNReaderReadUntil(reader, '\r', &value) != 0) {
             free(header);
             free(value);
             return -1;
         }
 
         // LF
-        if (ReaderReadByte(reader) != '\n') {
+        if (FLNReaderReadByte(reader) != '\n') {
             free(header);
             free(value);
             return -1;
         }
 
-        HeaderMapSet(&request->headers, header, value);
+        FLNHeaderMapSet(&request->headers, header, value);
 
         free(header);
         free(value);
@@ -114,24 +113,24 @@ int Parse(Reader *reader, Request *request) {
     // TODO: without, read all remaining
 
     // TODO: Move into separate method
-    char *transferEncoding = StringLower(StringTrim(HeaderMapGet(&request->headers, "Transfer-Encoding")));
+    char *transferEncoding = FLNStringLower(FLNStringTrim(FLNHeaderMapGet(&request->headers, "Transfer-Encoding")));
 
     if (transferEncoding != NULL && strcmp(transferEncoding, "chunked") == 0) {
         long chunkLength = 0;
 
-        StringBuffer buffer;
-        StringBufferCreate(&buffer);
+        FLNStringBuffer buffer;
+        FLNStringBufferCreate(&buffer);
 
         do {
             char *chunkLengthValue;
-            if (ReaderReadUntil(reader, '\r', &chunkLengthValue) < 0) {
+            if (FLNReaderReadUntil(reader, '\r', &chunkLengthValue) < 0) {
                 free(transferEncoding);
                 free(chunkLengthValue);
                 return -1;
             }
 
             // LF
-            if (ReaderReadByte(reader) != '\n') {
+            if (FLNReaderReadByte(reader) != '\n') {
                 free(transferEncoding);
                 free(chunkLengthValue);
                 return -1;
@@ -140,19 +139,19 @@ int Parse(Reader *reader, Request *request) {
             chunkLength = strtol(chunkLengthValue, NULL, 16);
 
             if (chunkLength == 0) {
-                request->body = StringBufferToString(&buffer);
+                request->body = FLNStringBufferToString(&buffer);
                 break;
             }
 
             char *chunk = malloc((chunkLength + 1) * sizeof(char));
-            if (ReaderRead(reader, chunk, chunkLength) < 0) {
+            if (FLNReaderRead(reader, chunk, chunkLength) < 0) {
                 free(transferEncoding);
                 free(chunk);
                 free(chunkLengthValue);
                 return -1;
             }
             chunk[chunkLength] = '\0';
-            StringBufferAppendString(&buffer, chunk, (int)chunkLength);
+            FLNStringBufferAppendString(&buffer, chunk, (int)chunkLength);
 
             free(chunk);
             free(chunkLengthValue);
@@ -172,11 +171,11 @@ int Parse(Reader *reader, Request *request) {
         return 0;
     }
 
-    const char *contentLengthValue = HeaderMapGet(&request->headers, "Content-Length");
+    const char *contentLengthValue = FLNHeaderMapGet(&request->headers, "Content-Length");
     if (contentLengthValue != NULL) {
         const long contentLength = strtol(contentLengthValue, NULL, 10);
         request->body = malloc((contentLength + 1) * sizeof(char));
-        if (ReaderRead(reader, request->body, contentLength) < 0) {
+        if (FLNReaderRead(reader, request->body, contentLength) < 0) {
             return -1;
         }
     }

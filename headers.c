@@ -2,15 +2,19 @@
 // Created by Ahmed Elrefaey on 15/02/2025.
 //
 
-#include "headers.h"
+#include <stdlib.h>
+#include <string.h>
 
-void HeaderMapCreate(HeaderMap *map) {
-    map->headers = malloc(sizeof(Header));
+#include "headers.h"
+#include "string.h"
+
+void FLNHeaderMapCreate(FLNHeaderMap *map) {
+    map->headers = malloc(sizeof(FLNHeader));
     map->count = 0;
     map->capacity = 1;
 }
 
-void HeaderMapFree(HeaderMap *map) {
+void FLNHeaderMapFree(FLNHeaderMap *map) {
     for (int i = 0; i < map->count; i++) {
         free(map->headers[i].header);
         free(map->headers[i].value);
@@ -22,11 +26,11 @@ void HeaderMapFree(HeaderMap *map) {
     map->capacity = 0;
 }
 
-char *HeaderMapGet(const HeaderMap *map, const char *header) {
-    char *canonical = StringLower(StringTrim(header));
+char *FLNHeaderMapGet(const FLNHeaderMap *map, const char *header) {
+    char *canonical = FLNStringLower(FLNStringTrim(header));
 
     for (int i = 0; i < map->count; i++) {
-        const Header current = map->headers[i];
+        const FLNHeader current = map->headers[i];
         if (strcmp(current.header, canonical) == 0) {
             free(canonical);
             return current.value;
@@ -37,11 +41,11 @@ char *HeaderMapGet(const HeaderMap *map, const char *header) {
     return NULL;
 }
 
-int HeaderMapSet(HeaderMap *map, const char *header, const char *value) {
-    char *canonical = StringLower(StringTrim(header));
+int FLNHeaderMapSet(FLNHeaderMap *map, const char *header, const char *value) {
+    char *canonical = FLNStringLower(FLNStringTrim(header));
 
     for (int i = 0; i < map->count; i++) {
-        Header *current = &map->headers[i];
+        FLNHeader *current = &map->headers[i];
         if (strcmp(current->header, canonical) == 0) {
             free(current->value);
             free(canonical);
@@ -53,7 +57,7 @@ int HeaderMapSet(HeaderMap *map, const char *header, const char *value) {
 
     if (map->capacity == map->count) {
         const int newCapacity = 2 * map->capacity;
-        Header *newHeaders = realloc(map->headers, newCapacity * sizeof(Header));
+        FLNHeader *newHeaders = realloc(map->headers, newCapacity * sizeof(FLNHeader));
 
         if (newHeaders == NULL) {
             free(canonical);
@@ -71,10 +75,10 @@ int HeaderMapSet(HeaderMap *map, const char *header, const char *value) {
     return 0;
 }
 
-int HeaderMapCount(const HeaderMap *map) {
+int FLNHeaderMapCount(const FLNHeaderMap *map) {
     return map->count;
 }
 
-Header HeaderMapGetAt(const HeaderMap *map, const int index) {
+FLNHeader FLNHeaderMapGetAt(const FLNHeaderMap *map, const int index) {
     return map->headers[index];
 }

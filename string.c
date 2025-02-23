@@ -8,20 +8,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-void StringBufferCreate(StringBuffer *buffer) {
+void FLNStringBufferCreate(FLNStringBuffer *buffer) {
     buffer->string = malloc(sizeof(char));
     buffer->size = 0;
     buffer->capacity = 1;
 }
 
-void StringBufferFree(StringBuffer *buffer) {
+void FLNStringBufferFree(FLNStringBuffer *buffer) {
     free(buffer->string);
     buffer->string = NULL;
     buffer->size = 0;
     buffer->capacity = 0;
 }
 
-int StringBufferAppend(StringBuffer *buffer, const char ch) {
+int FLNStringBufferAppend(FLNStringBuffer *buffer, const char ch) {
     if (buffer->capacity == buffer->size) {
         const int newCapacity = 2 * buffer->capacity;
         char *newString = realloc(buffer->string, newCapacity * sizeof(char));
@@ -52,7 +52,7 @@ static int NextPowerOfTwo(const int32_t n) {
     return 1 << (32 - __builtin_clz(n - 1));
 }
 
-int StringBufferAppendString(StringBuffer *buffer, const char *s, const int n) {
+int FLNStringBufferAppendString(FLNStringBuffer *buffer, const char *s, const int n) {
     const int newSize = n + buffer->size;
     if (buffer->capacity < newSize) {
         const int newCapacity = NextPowerOfTwo(newSize);
@@ -75,13 +75,13 @@ int StringBufferAppendString(StringBuffer *buffer, const char *s, const int n) {
     return 0;
 }
 
-char *StringBufferToString(StringBuffer *buffer) {
+char *FLNStringBufferToString(FLNStringBuffer *buffer) {
     char *result = strndup(buffer->string, buffer->size);
-    StringBufferFree(buffer);
+    FLNStringBufferFree(buffer);
     return result;
 }
 
-char *StringLower(char *source) {
+char *FLNStringLower(char *source) {
     if (source == NULL) {
         return NULL;
     }
@@ -95,7 +95,7 @@ char *StringLower(char *source) {
     return source;
 }
 
-char *StringTrim(const char *source) {
+char *FLNStringTrim(const char *source) {
     if (source == NULL) {
         return NULL;
     }

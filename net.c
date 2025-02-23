@@ -13,7 +13,7 @@
 
 #include "net.h"
 
-int Listen(Listener *listener, int port) {
+int FLNListen(FLNListener *listener, int port) {
     struct sockaddr_in address;
 
     address.sin_family = AF_INET;
@@ -47,7 +47,7 @@ int Listen(Listener *listener, int port) {
     return 0;
 }
 
-int Accept(const Listener *listener, Connection *connection) {
+int FLNAccept(const FLNListener *listener, FLNConnection *connection) {
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
 
@@ -65,7 +65,7 @@ int Accept(const Listener *listener, Connection *connection) {
     return 0;
 }
 
-int Close(const Connection *connection) {
+int FLNClose(const FLNConnection *connection) {
     const int result = shutdown(connection->conn_fd, SHUT_WR);
     if (result != 0) {
         return -1;
@@ -74,15 +74,15 @@ int Close(const Connection *connection) {
     return 0;
 }
 
-ssize_t Read(const Connection *connection, void *buffer, size_t size) {
+ssize_t FLNRead(const FLNConnection *connection, void *buffer, size_t size) {
     return read(connection->conn_fd, buffer, size);
 }
 
-ssize_t Write(const Connection *connection, const void *buffer, const size_t size) {
+ssize_t FLNWrite(const FLNConnection *connection, const void *buffer, const size_t size) {
     return write(connection->conn_fd, buffer, size);
 }
 
-int WriteFormat(const Connection *connection, const char *format, ...) {
+int FLNWriteFormat(const FLNConnection *connection, const char *format, ...) {
     va_list args;
     va_start(args, format);
     const int n = vdprintf(connection->conn_fd, format, args);

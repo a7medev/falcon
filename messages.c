@@ -3,20 +3,22 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "messages.h"
 
-void RequestCreate(Request *request) {
+void FLNRequestCreate(FLNRequest *request) {
     request->method = NULL;
     request->version = NULL;
     request->url = NULL;
     request->body = NULL;
 
-    HeaderMapCreate(&request->headers);
+    FLNHeaderMapCreate(&request->headers);
 }
 
-void RequestFree(Request *request) {
-    HeaderMapFree(&request->headers);
+void FLNRequestFree(FLNRequest *request) {
+    FLNHeaderMapFree(&request->headers);
 
     free(request->method);
     free(request->version);
@@ -24,26 +26,26 @@ void RequestFree(Request *request) {
     free(request->body);
 }
 
-void ResponseCreate(Response *response) {
-    response->status = HTTP_OK;
+void FLNResponseCreate(FLNResponse *response) {
+    response->status = FLN_HTTP_OK;
     response->body = NULL;
-    HeaderMapCreate(&response->headers);
+    FLNHeaderMapCreate(&response->headers);
 }
 
-void ResponseFree(Response *response) {
+void FLNResponseFree(FLNResponse *response) {
     free(response->body);
-    HeaderMapFree(&response->headers);
+    FLNHeaderMapFree(&response->headers);
 }
 
-void ResponseSetStatus(Response *response, HttpStatusCode status) {
+void FLNResponseSetStatus(FLNResponse *response, FLNHttpStatusCode status) {
     response->status = status;
 }
 
-void ResponseSetHeader(Response *response, const char *header, const char *value) {
-    HeaderMapSet(&response->headers, header, value);
+void FLNResponseSetHeader(FLNResponse *response, const char *header, const char *value) {
+    FLNHeaderMapSet(&response->headers, header, value);
 }
 
-void ResponseSetBody(Response *response, const char *body) {
+void FLNResponseSetBody(FLNResponse *response, const char *body) {
     free(response->body);
 
     response->body = strdup(body);
@@ -51,5 +53,5 @@ void ResponseSetBody(Response *response, const char *body) {
     char length[10];
     snprintf(length, sizeof(length), "%lu", strlen(body));
 
-    ResponseSetHeader(response, "Content-Length", length);
+    FLNResponseSetHeader(response, "Content-Length", length);
 }
